@@ -51,7 +51,7 @@ void SysTick_Handler(void) {
 }
 
 // The SVC handler. It turns on the red LED and spin if being invoked
-// when the code was running using MSP. In this code example, the `run()`
+// when the code was running using MSP. In this code example, the `worker()`
 // function will run with PSP, and exception handlers will run with MSP.
 // If SVC handler sees itself being invoked when the code was already
 // running with MSP, it means the SVC is nested above another exception
@@ -80,9 +80,9 @@ void init_systick_in_hz(uint32_t hz) {
     SysTick_Config(HSI_HZ / hz);
 }
 
-// The entry function. It sets up the stacks and jumps to the `run()`
+// The entry function. It sets up the stacks and jumps to the `worker()`
 // function. MSP grows down from 0x2002_0000, while PSP grows down
-// from 0x2001_0000. The `run()` functions will run with PSP, and the
+// from 0x2001_0000. The `worker()` functions will run with PSP, and the
 // exception handlers will run with MSP.
 int __attribute__((naked)) main(void) {
     asm volatile (
@@ -92,17 +92,17 @@ int __attribute__((naked)) main(void) {
         // MSP grows down from 0x2002_0000
         "ldr r0, =#0x20020000 \n"
         "msr msp, r0          \n"
-        // The `run()` functions will run with PSP
+        // The `worker()` functions will run with PSP
         "mrs r0, control      \n"
         "orr r0, #2           \n"
         "msr control, r0      \n"
-        // Jump to `run()`
-        "b   run              \n"
+        // Jump to `worker()`
+        "b   worker              \n"
         :::
     );
 }
 
-int run(void) {
+int worker(void) {
     // Let SysTick fire every 0.1ms.
     init_systick_in_hz(10000);
 
